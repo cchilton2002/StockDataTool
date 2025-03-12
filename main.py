@@ -14,4 +14,3 @@ if __name__ == "__main__":
     
     if data is not None:
         plot_historic_data(data, ticker)
-        # print(data['date'].head())

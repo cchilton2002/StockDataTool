@@ -7,6 +7,7 @@ from matplotlib.ticker import NullLocator
 from matplotlib.gridspec import GridSpec
 import seaborn as sns
 
+# Tiingo is the website we will use for the API calls 
 BASE_URL = "https://api.tiingo.com/tiingo"
 
 
@@ -19,15 +20,16 @@ def get_historical_data(ticker, start_date, end_date, interval="1hour"):
         "startDate": start_date,
         "endDate": end_date,
         "format": "json",
-        "token": API_KEY  # Pass the API key as a query parameter
+        "token": API_KEY  
+        
     }
 
-    # Add resampleFreq for intraday data
+    # Add resampleFreq for intraday data, this takes specific values (SEE TIINGO DOCUMENTATION)
     if interval != "1day":
         params["resampleFreq"] = interval
 
     try:
-        response = requests.get(endpoint, params=params)
+        response = requests.get(endpoint, params=params) # Get the data from the API call
         response.raise_for_status()
         data = response.json()
         return pd.DataFrame(data), ticker
@@ -42,7 +44,7 @@ def plot_historic_data(data, ticker):
 
     # Use a seaborn style for a nicer look
     sns.set_style("whitegrid")
-    sns.set_palette("viridis")  # Choose a color palette (e.g., viridis, pastel, deep)
+    sns.set_palette("viridis")  # Choose a color palette 
 
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(15, 10), sharex=True, gridspec_kw={'height_ratios': [3, 1]})
     ax1.cla() # clear axis 1
@@ -60,12 +62,15 @@ def plot_historic_data(data, ticker):
         ax1.vlines(x=date, ymin=low, ymax=high, color=color, linewidth=1)
         ax1.bar(x=date, bottom=bottom, height=height, color=color, width=bar_width)
 
+    # Line which follows the candlesticks
     ax1.plot(data['date'], data['close'], color='gray', linewidth=1.5, alpha=0.9, label='Closing Price')
-
+    
+    # Better formatting of the ticks 
     ax1.xaxis.set_major_locator(mdates.MonthLocator())
     ax1.xaxis.set_minor_locator(mdates.DayLocator(interval=7))
     ax1.xaxis.set_minor_locator(NullLocator())
 
+    # Making sure the plot has sufficient room around it
     thresh = 40
     y_min = data['low'].min() - data['low'].min() / thresh
     y_max = data['high'].max() + data['high'].max() / thresh
@@ -85,8 +90,6 @@ def plot_historic_data(data, ticker):
     ax2.xaxis.set_minor_locator(mdates.DayLocator(interval=7))
     ax2.xaxis.set_minor_locator(NullLocator())
 
-    # ax2.set_xlabel("Date", fontsize=12)
-    # ax2.tick_params(axis='x', labelsize=10, rotation=45) # Rotate x-axis labels
 
     plt.tight_layout(rect=[0, 0.03, 1, 0.95]) # Adjust tight_layout to fit title
     plt.show()
