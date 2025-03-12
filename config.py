@@ -1,1 +1,1 @@
-API_KEY = "cbe27f86a1559192c00312d79a0c6c4965d79e5d"
+API_KEY = <your-api-key>
