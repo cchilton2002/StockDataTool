@@ -10,7 +10,7 @@ if __name__ == "__main__":
     end_date = "2024-06-01"
     
     print("Fetching data...")
-    data, ticker = get_historical_data(ticker, start_date, end_date, interval="1day")
+    data = get_historical_data(ticker, start_date, end_date, interval="1day")
     
     if data is not None:
-        plot_historic_data(data, ticker)
+        plot_historic_data(data, ticker, start_date, end_date)

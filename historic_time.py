@@ -6,24 +6,23 @@ import matplotlib.dates as mdates
 from matplotlib.ticker import NullLocator
 from matplotlib.gridspec import GridSpec
 import seaborn as sns
+from datetime import timedelta
 
 # Tiingo is the website we will use for the API calls 
 BASE_URL = "https://api.tiingo.com/tiingo"
 
 
 def get_historical_data(ticker, start_date, end_date, interval="1hour"):
-
     endpoint = f"{BASE_URL}/daily/{ticker}/prices"
 
-
+    start_date = pd.to_datetime(start_date)
+    
     params = {
-        "startDate": start_date,
+        "startDate": start_date - timedelta(days=(200/0.68)),
         "endDate": end_date,
         "format": "json",
         "token": API_KEY  
-        
     }
-
     # Add resampleFreq for intraday data, this takes specific values (SEE TIINGO DOCUMENTATION)
     if interval != "1day":
         params["resampleFreq"] = interval
@@ -32,16 +31,24 @@ def get_historical_data(ticker, start_date, end_date, interval="1hour"):
         response = requests.get(endpoint, params=params) # Get the data from the API call
         response.raise_for_status()
         data = response.json()
-        return pd.DataFrame(data), ticker
+        return pd.DataFrame(data)
     except requests.exceptions.RequestException as e:
         print(f"There was an error fetching the data: {e}")
         return None
 
 
 
-def plot_historic_data(data, ticker):
+def plot_historic_data(data, ticker, start_date, end_date):
     data['date'] = pd.to_datetime(data['date']).dt.date
+    
+    start_date = pd.to_datetime(start_date).date()
+    end_date = pd.to_datetime(end_date).date()
+    
+    # Compute moving averages manually
+    data["SMA_200"] = data["close"].rolling(window=200).mean()
 
+    filtered_data = data[(data['date'] >= start_date) & (data['date'] <= end_date)].copy()
+    
     # Use a seaborn style for a nicer look
     sns.set_style("whitegrid")
     sns.set_palette("viridis")  # Choose a color palette 
@@ -52,23 +59,29 @@ def plot_historic_data(data, ticker):
     fig.suptitle(f"Stock Price and Volume for {ticker}", fontsize=16) # Add a title
 
     bar_width = 0.7  # Adjusted for better spacing
-
+    
     # Price chart (ax1)
-    for date, open_, close, low, high in zip(data['date'], data['open'], data['close'], data['low'], data['high']):
+    for date, open_, close, low, high in zip(filtered_data['date'], filtered_data['open'], filtered_data['close'], filtered_data['low'], filtered_data['high']):
         color = 'green' if close > open_ else 'red'  # More traditional colors
         bottom = min(open_, close)
         height = abs(close - open_)
-
+        # Plot the wick 
         ax1.vlines(x=date, ymin=low, ymax=high, color=color, linewidth=1)
+        # Plot the candle body
         ax1.bar(x=date, bottom=bottom, height=height, color=color, width=bar_width)
 
-    # Line which follows the candlesticks
-    ax1.plot(data['date'], data['close'], color='gray', linewidth=1.5, alpha=0.9, label='Closing Price')
-    
+       
+    filtered_data["EMA_200"] = filtered_data['close'].ewm(span=200, adjust=False).mean() #calculate ema based on close price.
+    ax1.plot(filtered_data['date'], filtered_data['EMA_200'], linestyle='--', linewidth=2, label="EMA 200", alpha=0.8)
+
+    ax1.plot(filtered_data['date'], filtered_data["SMA_200"], color="red", linestyle='-', linewidth=2, label="SMA 200", alpha=0.8) 
+    ax2.bar(filtered_data['date'], filtered_data['volume'], color=sns.color_palette()[0], width=bar_width) # Use a color from the palette
+
     # Better formatting of the ticks 
     ax1.xaxis.set_major_locator(mdates.MonthLocator())
     ax1.xaxis.set_minor_locator(mdates.DayLocator(interval=7))
     ax1.xaxis.set_minor_locator(NullLocator())
+    ax1.legend()
 
     # Making sure the plot has sufficient room around it
     thresh = 40
@@ -81,7 +94,6 @@ def plot_historic_data(data, ticker):
     ax1.tick_params(axis='y', labelsize=10) # Adjust tick label size
 
     # Volume chart (ax2)
-    ax2.bar(data['date'], data['volume'], color=sns.color_palette()[0], width=bar_width) # Use a color from the palette
     ax2.set_ylabel("Volume", fontsize=12)
     ax2.grid(True, linestyle='--', alpha=0.6)
     ax2.tick_params(axis='y', labelsize=10)
