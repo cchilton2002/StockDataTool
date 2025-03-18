@@ -56,47 +56,44 @@ def plot_historic_data(data, ticker, start_date, end_date):
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(15, 10), sharex=True, gridspec_kw={'height_ratios': [3, 1]})
     ax1.cla() # clear axis 1
     ax2.cla() # clear axis 2
-    fig.suptitle(f"Stock Price and Volume for {ticker}", fontsize=16) # Add a title
+    fig.suptitle(f"Stock Price and Volume for {ticker}", fontsize=24) # Add a title
 
     bar_width = 0.7  # Adjusted for better spacing
-    
     # Price chart (ax1)
     for date, open_, close, low, high in zip(filtered_data['date'], filtered_data['open'], filtered_data['close'], filtered_data['low'], filtered_data['high']):
         color = 'green' if close > open_ else 'red'  # More traditional colors
         bottom = min(open_, close)
         height = abs(close - open_)
         # Plot the wick 
-        ax1.vlines(x=date, ymin=low, ymax=high, color=color, linewidth=1)
+        ax1.vlines(x=date, ymin=low, ymax=high, color=color, linewidth=1.5)
         # Plot the candle body
-        ax1.bar(x=date, bottom=bottom, height=height, color=color, width=bar_width)
+        ax1.bar(x=date, bottom=bottom, height=height, color=color, width=1)
 
        
     filtered_data["EMA_200"] = filtered_data['close'].ewm(span=200, adjust=False).mean() #calculate ema based on close price.
-    ax1.plot(filtered_data['date'], filtered_data['EMA_200'], linestyle='--', linewidth=2, label="EMA 200", alpha=0.8)
 
+    ax1.plot(filtered_data['date'], filtered_data['close'], color='grey', alpha=0.8, linewidth=1.6)
+    ax1.plot(filtered_data['date'], filtered_data['EMA_200'], linestyle='--', linewidth=2, label="EMA 200", alpha=0.8)
     ax1.plot(filtered_data['date'], filtered_data["SMA_200"], color="red", linestyle='-', linewidth=2, label="SMA 200", alpha=0.8) 
-    ax2.bar(filtered_data['date'], filtered_data['volume'], color=sns.color_palette()[0], width=bar_width) # Use a color from the palette
+
+    ax2.bar(filtered_data['date'], filtered_data['volume'], color=sns.color_palette()[0], width=0.8) # Use a color from the palette
 
     # Better formatting of the ticks 
     ax1.xaxis.set_major_locator(mdates.MonthLocator())
     ax1.xaxis.set_minor_locator(mdates.DayLocator(interval=7))
     ax1.xaxis.set_minor_locator(NullLocator())
-    ax1.legend()
+    ax1.legend(fontsize=16)
 
-    # Making sure the plot has sufficient room around it
-    thresh = 40
-    y_min = data['low'].min() - data['low'].min() / thresh
-    y_max = data['high'].max() + data['high'].max() / thresh
-    ax1.set_ylim(y_min, y_max)
 
-    ax1.set_ylabel("Stock Prce ($)", fontsize=12)
+    ax1.set_ylabel("Stock Prce ($)", fontsize=16)
     ax1.grid(True, linestyle='--', alpha=0.6)
-    ax1.tick_params(axis='y', labelsize=10) # Adjust tick label size
+    ax1.tick_params(axis='y', labelsize=14) # Adjust tick label size
 
     # Volume chart (ax2)
-    ax2.set_ylabel("Volume", fontsize=12)
+    ax2.set_ylabel("Volume", fontsize=16)
     ax2.grid(True, linestyle='--', alpha=0.6)
-    ax2.tick_params(axis='y', labelsize=10)
+    ax2.tick_params(axis='y', labelsize=14)
+    ax2.tick_params(axis='x', labelsize=14)
 
     ax2.xaxis.set_major_locator(mdates.MonthLocator())
     ax2.xaxis.set_minor_locator(mdates.DayLocator(interval=7))
