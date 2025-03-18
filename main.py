@@ -13,4 +13,4 @@ if __name__ == "__main__":
     data = get_historical_data(ticker, start_date, end_date, interval="1day")
     
     if data is not None:
-        plot_historic_data(data, ticker, start_date, end_date)
+        plot_historic_data(data, ticker, start_date, end_date, plot_type='Bollinger')
