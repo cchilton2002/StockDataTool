@@ -5,7 +5,7 @@ import pandas as pd
 
 if __name__ == "__main__":
 
-    ticker = "GOOGL"
+    ticker = "AAPL"
     start_date = "2024-02-01"
     end_date = "2024-06-01"
     
@@ -13,6 +13,9 @@ if __name__ == "__main__":
     data = get_historical_data(ticker, start_date, end_date, interval="1day")
     
     if data is not None:
-        # plot_type takes "Bollinger", "Averages" and False values, and plots the corresponding indicators
-        # rsi takes Boolean values and toggles the RSI plot on and off
-        plot_historic_data(data, ticker, start_date, end_date, plot_type='Bollinger', rsi=True)
+        # ma: Moving averages (SMA 200 and EMA 200)
+        # bb: Bollinger Bands
+        # vwap: Volume weighted average price
+        # rsi: Relative strength index
+        # All of these indicators can be toggled with a boolean switch
+        plot_historic_data(data, ticker, start_date, end_date, ma=True, bb=False, vwap=False, rsi=False)
