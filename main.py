@@ -13,4 +13,6 @@ if __name__ == "__main__":
     data = get_historical_data(ticker, start_date, end_date, interval="1day")
     
     if data is not None:
-        plot_historic_data(data, ticker, start_date, end_date, plot_type='Bollinger')
+        # plot_type takes "Bollinger", "Averages" and False values, and plots the corresponding indicators
+        # rsi takes Boolean values and toggles the RSI plot on and off
+        plot_historic_data(data, ticker, start_date, end_date, plot_type='Bollinger', rsi=True)
