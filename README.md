@@ -1,6 +1,6 @@
 # Stock Data Visualization Tool
 
-This Python program retrieves historical stock data using Tiingo for API calls and visualises it with `matplotlib`. It displays candlestick-like charts of stock prices along with volume data, providing a clear overview of stock performance over time.
+This Python program retrieves historical stock data using Tiingo for API calls and visualises it with `matplotlib`, simply. There are a number of toggles in this program, the ```save_data``` toggle allows the user to save fetched data into a table within a database, subsequent plots with the same date ranges will then use the table data instead of API fetched data. The other toggles are for indicators on the stock data plot such as bollinger bands and relative strength index.
 
 ## Features
 
@@ -9,6 +9,8 @@ This Python program retrieves historical stock data using Tiingo for API calls a
 * **Volume Charts:** Displays trading volume alongside price data.
 * **Customisable Plotting:** Uses `matplotlib` and `seaborn` for enhanced visualisation and styling.
 * **Toggle Indicators** Toggle useful indicators such as moving averages (EMA 200, SMA 200), Bollinger bands, RSI and VWAP.
+* **Toggle SQL Data Saving** The option to store fetched data into a database is possible for further analysis.
+
 
 
 ## Installation
