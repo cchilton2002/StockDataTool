@@ -34,7 +34,6 @@ def fetch_stock_data(
 def calculate_indicators(
     data: pd.DataFrame, ma: bool, bb: bool, vwap: bool, rsi: bool
     ):
-    """Ensures all necessary columns exist before filtering data."""
     if rsi:
         delta = data['close'].diff()
         gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()

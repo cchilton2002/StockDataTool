@@ -8,12 +8,10 @@ from datetime import timedelta, datetime
 def create_tables(
     data: pd.DataFrame, ticker:str, start_date:str, end_date:str
 ) -> None:
-    """
-    Stores fetched stock data into a dynamically named MySQL table.
-    """
+    # Stores fetched stock data into a dynamically named MySQL table.
     
     if data.empty:
-        print("⚠️ No data available for insertion.")
+        print("⚠️ No data available for insertion.\n")
         return
     
 
@@ -26,6 +24,7 @@ def create_tables(
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
         
+        # Creates metadata table if one doesn't exits
         cursor.execute(f"""
             CREATE TABLE IF NOT EXISTS {metadata_table} (
                 ticker VARCHAR(10) PRIMARY KEY,
@@ -34,12 +33,13 @@ def create_tables(
             )
         """)
         
+        # Checking if the table for the stock exists
         cursor.execute(f"SHOW TABLES LIKE '{table_name}'")
         table_exists = cursor.fetchone()
         
         if not table_exists:
-            # ✅ If the table doesn't exist, create it
-            print(f"🆕 Creating new table: {table_name}")
+            # If the table doesn't exist, create it
+            print(f"Creating new table: {table_name}.\n")
             create_table_query = f"""
                 CREATE TABLE {table_name} (
                     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -53,19 +53,19 @@ def create_tables(
             """
             cursor.execute(create_table_query)
         else: 
-            # ✅ Fetch current min and max dates from the table
+            # Fetch current min and max dates from the metadata table
             cursor.execute(f"SELECT start_date, end_date FROM {metadata_table} WHERE ticker = %s", (ticker,))
             result = cursor.fetchone()
             
             if result:
                 meta_start, meta_end = result
-            
+                # If the start and end dates are unchanged then don't update the table
                 if meta_start == start_date and meta_end == end_date:
-                    print(f"✅ Table {table_name} already contains the correct date range. Skipping update.")
+                    print(f"Table {table_name} already contains the correct date range. Skipping update.\n")
                     cursor.close()
                     conn.close()
                     return
-            
+            # If the dates have been changed then reinsert correct data
             print(f"The start and end dates have been changed, reinserting {table_name} data. \n")
             cursor.execute(f"DELETE FROM {table_name}")
         
@@ -73,13 +73,14 @@ def create_tables(
         records = data.to_dict(orient="records")
         
         
-        # ✅ Insert new data
+        # Insert new data
         insert_query = f"""
             INSERT INTO {table_name} (date, open, high, low, close, volume)
             VALUES (%s, %s, %s, %s, %s, %s)
         """
         cursor.executemany(insert_query, [(row["date"], row["open"], row["high"], row["low"], row["close"], row["volume"]) for row in records])
         
+        # Insert values into metadata table     
         cursor.execute(f"""
             INSERT INTO {metadata_table} (ticker, start_date, end_date)
             VALUES (%s, %s, %s)

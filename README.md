@@ -7,16 +7,9 @@ This Python program retrieves historical stock data using Tiingo for API calls a
 * **Historical Data Retrieval:** Fetches stock data from Tiingo.
 * **Candlestick-like Charts:** Visualises stock price movements with open, close, high, and low values.
 * **Volume Charts:** Displays trading volume alongside price data.
-* **Customizable Plotting:** Uses `matplotlib` and `seaborn` for enhanced visualisation and styling.
-* **Date-based X-Axis:** Provides clear date labels for time-series analysis.
-* **Clear Title:** Displays the ticker symbol in the title.
+* **Customisable Plotting:** Uses `matplotlib` and `seaborn` for enhanced visualisation and styling.
+* **Toggle Indicators** Toggle useful indicators such as moving averages (EMA 200, SMA 200), Bollinger bands, RSI and VWAP.
 
-## Prerequisites
-
-* Python 3.x
-* `pandas`
-* `matplotlib`
-* `seaborn`
 
 ## Installation
 
@@ -29,7 +22,13 @@ This Python program retrieves historical stock data using Tiingo for API calls a
 2.  **Create a API key Tiingo:**
     Create an account on Tingo and add your API key to the `config.py` script
 
-3.  **Create a virtual environment (recommended):**
+3.  **Ensure MySQL information:**
+    For this program I used MySQL as the database management system, required user specific info can be found in `config.py`
+
+4.  **Create `.env` file:**
+    Create a `.env` file that has all the required user specifc information that is needed in `config.py`, eg. API_KEY.
+
+4.  **Create a virtual environment (recommended):**
 
     ```bash
     python3 -m venv venv
@@ -37,7 +36,7 @@ This Python program retrieves historical stock data using Tiingo for API calls a
     venv\Scripts\activate  # On Windows
     ```
 
-4.  **Install dependencies:**
+5.  **Install dependencies:**
 
     ```bash
     pip install -r requirements.txt
@@ -45,13 +44,7 @@ This Python program retrieves historical stock data using Tiingo for API calls a
 
 ## Usage
 
-1.  **Run the `main.py` script:**
-
-    ```bash
-    python main.py
-    ```
-
-2.  **Modify `main.py`:**
+1.  **Modify `main.py`:**
     * Change the `ticker`, `start_date`, and `end_date` variables to retrieve and visualise different stock data.
     * Change the `interval` variable to change the data interval.
 
@@ -62,15 +55,29 @@ This Python program retrieves historical stock data using Tiingo for API calls a
     interval = "1day" 
     ```
 
+    * Depending on whether you want to save the data in a database, toggle the ```save_data=True```.
+    * If you would like different indicators displayed toggle the specific indicators, ma: moving averages, bb: bollinger bands,
+      vwap: volume weighted average price and rsi: relative strength index.
+
+2.  **Run the `main.py` script:**
+
+    ```bash
+    python main.py
+    ```
+
 3.  **View the plot:**
     * A `matplotlib` window will display the stock price and volume chart.
 
 ## Files
 
 * `main.py`: The main script that retrieves data and generates the plot.
-* `historic_time.py`: Contains the functions for retrieving and plotting historical data.
-* `real_time.py`: Contains the functions which retrieve real time data of the stock.
+* `plot.py`: Contains the functions and specific formatting for the plot itself.
+* `indicators.py`: Fetches data from the database if used and defines the function to calculate the specific indicator values.
+* `database.py`: Defines the function for creating the tables within our database for each dataset.
+* `fetch_data.py`: This file calls the Tiingo API fetch the data as well as define whether to use database data or not 
+                   depending on user choices.
 * `requirements.txt`: Lists the required Python packages.
+* `config.py`: Contains the API KEY and other sensitive info for the program.
 * `.gitignore`: Specifies files and directories to ignore in Git.
 
 ## Contributing

@@ -12,8 +12,11 @@ def plot_stock_data(
     start_date = pd.to_datetime(start_date).date()
     end_date = pd.to_datetime(end_date).date()
     
+    
+    # Calculate the corresponding indicators depending on toggles
     data = calculate_indicators(data, ma, bb, vwap, rsi)
     
+    # Filtering data so we only plot between start and end date specified
     filtered_data = data[(data['date'] >= start_date) & (data['date'] <= end_date)].copy()
     
     sns.set_style("whitegrid")
