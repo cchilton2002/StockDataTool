@@ -1,8 +1,9 @@
 import mysql.connector
-from settings import DB_CONFIG
+from config import DB_CONFIG
 from typing import List, Dict, Any
 import pandas as pd
 from datetime import datetime
+from typing import Optional
 
 class DatabaseManager:
     def __init__(self):
@@ -16,7 +17,7 @@ class DatabaseManager:
     
     def create_tables(self, data: pd.DataFrame, ticker: str, start_date: str, end_date: str) -> None:
         if data.empty:
-            print("⚠️ No data available for insertion.\n")
+            print("No data available for insertion.\n")
             return
 
         table_name = f"stock_{ticker.lower()}"
@@ -56,11 +57,13 @@ class DatabaseManager:
             if result:
                 meta_start, meta_end = result
                 if meta_start == start_date and meta_end == end_date:
-                    print(f"✅ Table {table_name} already contains the correct date range. Skipping update.\n")
+                    print(f"Table {table_name} already contains the correct date range. Skipping update.\n")
                     return
 
-            print(f"🔁 Dates changed — clearing and reinserting data into {table_name}.\n")
+            print(f"Dates changed — clearing and reinserting data into {table_name}.\n")
             self.cursor.execute(f"DELETE FROM {table_name}")
+            self.cursor.execute(f"ALTER TABLE {table_name} AUTO_INCREMENT = 1")
+
 
         data["date"] = pd.to_datetime(data["date"]).dt.strftime("%Y-%m-%d")
         records = data.to_dict(orient="records")
@@ -81,4 +84,42 @@ class DatabaseManager:
         """, (ticker, start_date, end_date))
 
         self.conn.commit()
-        print(f"✅ Data for {ticker} inserted into {table_name}. Metadata updated.")
+        print(f"Data for {ticker} inserted into {table_name}. Metadata updated.")
+    
+    def fetch_stock_data(
+        self,
+        ticker: str
+    ) -> Optional[pd.DataFrame]:
+        table_name = f"stock_{ticker.lower()}"
+        
+        try:
+            conn = mysql.connector.connect(**DB_CONFIG)
+            cursor = conn.cursor()
+            
+            query = f"""
+                SELECT * FROM {table_name} ORDER BY date ASC
+            """
+            cursor.execute(query)
+
+            columns = [col[0] for col in cursor.description]
+
+            rows = cursor.fetchall()
+            
+            cursor.close()
+            conn.close()
+            
+            df = pd.DataFrame(rows, columns=columns)
+            return df
+        
+        except mysql.connector.Error as e:
+            print(f"MySql error: {e}")
+            
+    def get_metadata(self, ticker: str) -> Optional[Dict[str, Any]]:
+        self.cursor.execute("""
+            SELECT start_date, end_date FROM table_metadata WHERE ticker = %s
+        """, (ticker,))
+        result = self.cursor.fetchone()
+        if result:
+            return {"start_date": result[0], "end_date": result[1]}
+        return None
+
